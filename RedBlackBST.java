@@ -8,10 +8,10 @@ public class RedBlackBST<T> {
         private boolean color;
         private Node left, right;
 
-        public Node(int key, T element, boolean isRed, int size) {
+        public Node(int key, T element, boolean color, int size) {
             this.key = key;
             this.element = element;
-            this.color = isRed;
+            this.color = color;
         }
     }
 
@@ -32,7 +32,7 @@ public class RedBlackBST<T> {
     }
 
     private Node put(Node node, int key, T element) {
-        if (node == null) return new Node(key, element, true, 1);
+        if (node == null) return new Node(key, element, RED, 1);
 
         if (key < node.key)
             node.left = put(node.left, key, element);
@@ -41,15 +41,21 @@ public class RedBlackBST<T> {
         else
             node.element = element;
 
-        // Rearrange
-        if (node.right.color && !node.left.color)
+        if (isRed(node.right) && !isRed(node.left))
             node = rotateLeft(node);
-        if (node.left.color && node.left.left.color)
+        if (isRed(node.left) && isRed(node.left.left))
             node = rotateRight(node);
-        if (node.left.color && node.right.color)
+        if (isRed(node.left) && isRed(node.right))
             flipColors(node);
 
         return node;
+    }
+
+
+    private boolean isRed(Node node) {
+        if (node == null)
+            return false;
+        return node.color;
     }
 
     private Node rotateLeft(Node node) {
@@ -99,7 +105,6 @@ public class RedBlackBST<T> {
         else
             return min(x.left);
     }
-
 
     // Traverse and prints the keys in levelOrder order
     public void levelOrder() {
