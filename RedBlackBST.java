@@ -8,7 +8,7 @@ public class RedBlackBST<T> {
         private boolean color;
         private Node left, right;
 
-        public Node(int key, T element, boolean color, int size) {
+        public Node(int key, T element, boolean color) {
             this.key = key;
             this.element = element;
             this.color = color;
@@ -32,7 +32,7 @@ public class RedBlackBST<T> {
     }
 
     private Node put(Node node, int key, T element) {
-        if (node == null) return new Node(key, element, RED, 1);
+        if (node == null) return new Node(key, element, RED);
 
         if (key < node.key)
             node.left = put(node.left, key, element);
@@ -50,7 +50,6 @@ public class RedBlackBST<T> {
 
         return node;
     }
-
 
     private boolean isRed(Node node) {
         if (node == null)
@@ -124,7 +123,6 @@ public class RedBlackBST<T> {
         }
     }
 
-
     // Returns height
     public int height() {
         return height(root) + 1;
@@ -193,7 +191,6 @@ public class RedBlackBST<T> {
     private T get(Node node, int key) {
         if (node == null)
             return null;
-
         // Smaller on left side
         if (key < node.key)
             return get(node.left, key);
@@ -204,7 +201,88 @@ public class RedBlackBST<T> {
             return node.element;
     }
 
-    public static void main(String[]args) {
+    private Node deleteMin(Node node) {
+        if (node.left == null)
+            return null;
 
+        if (!isRed(node.left) && !isRed(node.left.left)) {
+            flipColors(node);
+            if (isRed(node.right.left)) {
+                node.right = rotateRight(node.right);
+                node = rotateLeft(node);
+                flipColors(node);
+            }
+        }
+
+        node.left = deleteMin(node.left);
+        return balance(node);
+    }
+
+    private Node balance(Node node) {
+        if (isRed(node.right))
+            node = rotateLeft(node);
+        if (isRed(node.left) && isRed(node.left.left))
+            node = rotateRight(node);
+        if (isRed(node.left) && isRed(node.right))
+            flipColors(node);
+        return node;
+    }
+
+    public void delete(int key) {
+        if (!contains(key)) return;
+        if (!isRed(root.left) && !isRed(root.right))
+            root.color = RED;
+
+        root = delete(root, key);
+        if (root != null)
+            root.color = BLACK;
+    }
+
+    private Node delete(Node node, int key) {
+        if (key < node.key)  {
+            if (!isRed(node.left) && !isRed(node.left.left)) {
+                flipColors(node);
+                if (isRed(node.right.left)) {
+                    node.right = rotateRight(node.right);
+                    node = rotateLeft(node);
+                    flipColors(node);
+                }
+            }
+            node.left = delete(node.left, key);
+        }
+        else {
+            if (isRed(node.left))
+                node = rotateRight(node);
+            if (key == node.key && (node.right == null))
+                return null;
+            if (!isRed(node.right) && !isRed(node.right.left)) {
+                flipColors(node);
+                if (isRed(node.left.left)) {
+                    node = rotateRight(node);
+                    flipColors(node);
+                }
+            }
+            if (node.key == key) {
+                Node x = min(node.right);
+                node.key = x.key;
+                node.element = x.element;
+                node.right = deleteMin(node.right);
+            }
+            else node.right = delete(node.right, key);
+        }
+        return balance(node);
+    }
+
+
+    public static void main(String[]args) {
+        RedBlackBST<Integer> tree = new RedBlackBST<Integer>();
+        for (int i = 1; i < 10; i++)
+            tree.put(i,i);
+
+        tree.inOrder();
+        System.out.println("");
+
+        tree.delete(2);
+        tree.inOrder();
     }
 }
